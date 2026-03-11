@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+
+# output
+out/
+dist/
+*.tgz
+
+# code coverage
+coverage/
+*.lcov
+
+# logs
+logs/
+*.log
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# IDEs
+.idea/
+.vscode/
+.cursor/
+
+# Claude Code project memory
+.claude/
+
+# macOS
+.DS_Store
+
+# SQLite database
+data/
+
+# Bun
+bun.lock
+

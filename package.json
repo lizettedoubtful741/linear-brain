@@ -1,0 +1,45 @@
+{
+  "name": "linear-brain",
+  "version": "1.0.0",
+  "description": "Manage your Linear board with AI — no MCP required. Human-approval queue for all write operations.",
+  "module": "src/index.ts",
+  "type": "module",
+  "license": "MIT",
+  "author": "Luke Hawkins",
+  "keywords": [
+    "linear",
+    "linear-app",
+    "project-management",
+    "ai",
+    "claude",
+    "mcp-alternative",
+    "approval-queue",
+    "design-system",
+    "bun",
+    "hono"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LukeHawkins/linear-brain"
+  },
+  "homepage": "https://github.com/LukeHawkins/linear-brain#readme",
+  "bugs": {
+    "url": "https://github.com/LukeHawkins/linear-brain/issues"
+  },
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@linear/sdk": "^77.0.0",
+    "hono": "^4.12.6",
+    "zod": "^4.3.6"
+  }
+}
