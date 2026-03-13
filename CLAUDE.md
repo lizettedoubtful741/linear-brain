@@ -4,6 +4,17 @@
 
 This is **Linear Brain** — a project management tool for a small team (2 devs, 2-3 designers, no PM). It reads from Linear freely and provides a human-approval queue for write operations, managed through a web dashboard. The intelligence layer is Claude Code (CC), operated interactively — there is no automated AI in the app.
 
+## Self-Improvement Rule
+
+**This product learns per-team.** Whenever the user requests a change to general CC behaviour, update the appropriate local file immediately:
+
+- **Board conventions** (ticket naming, labels, descriptions, workflows) → `BOARD_RULES.md`
+- **Product behaviour** (coding conventions, safety rules, architecture) → `CLAUDE.md` or `ARCHITECTURE.md`
+
+This ensures the repo is self-contained — anyone who clones it gets the same behaviour without needing private memory or context.
+
+**Do NOT update these files for one-off requests** (e.g. "fix this specific ticket", "create a proposal for X"). Only persist rules that should apply to all future interactions.
+
 ## Critical Safety Rule
 
 **Every write operation to Linear MUST go through the approval queue.** The AI must NEVER directly mutate Linear data. All mutations flow through `src/queue/executor.ts` which requires an approved proposal. No exceptions.
@@ -51,6 +62,8 @@ linear-brain/
 ├── CLAUDE.md                  # this file
 ├── ARCHITECTURE.md
 ├── PROGRESS.md
+├── BOARD_RULES.md             # team-specific board conventions (gitignored)
+├── BOARD_RULES.example.md     # template for new installations
 ├── package.json
 ├── tsconfig.json
 ├── bunfig.toml
@@ -82,6 +95,15 @@ linear-brain/
 - No `ANTHROPIC_API_KEY` in config. No scheduler. No automated analyzers.
 - The AI workflow is: CC reads Linear data via reader.ts → CC reasons about it → CC creates proposals in the queue via the API → human reviews proposals on the dashboard → executor runs approved ones.
 - Phases 3 and 4 from the original plan (automated analyzers and proposers) are replaced by this CC-driven workflow.
+
+## Board Rules
+
+Team-specific board conventions (ticket naming, label groups, description format, DRAFT workflow) live in `BOARD_RULES.md`. This file is gitignored — each installation maintains their own.
+
+- **New users:** `cp BOARD_RULES.example.md BOARD_RULES.md` and edit to match your board.
+- **CC reads `BOARD_RULES.md` at the start of every interaction** and follows those rules when creating, updating, or auditing tickets.
+- **CC updates `BOARD_RULES.md`** when it learns new general conventions from the user (see Self-Improvement Rule above). One-off requests are not persisted.
+- If `BOARD_RULES.md` is missing, prompt the user to create one from the example.
 
 ## Dashboard Notes
 
