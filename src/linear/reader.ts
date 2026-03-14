@@ -1,4 +1,4 @@
-import type { Team, Cycle, Issue, User, IssueLabel } from "@linear/sdk";
+import type { Team, Cycle, Issue, User, IssueLabel, WorkflowState } from "@linear/sdk";
 import { linearClient } from "./client.ts";
 
 type IssueQueryVars = Parameters<typeof linearClient.issues>[0];
@@ -55,4 +55,18 @@ export async function getLabels(teamId: string): Promise<IssueLabel[]> {
   console.log(`[linear-reader] fetching labels for team ${teamId}`);
   const team = await linearClient.team(teamId);
   return collectAll((after, first) => team.labels({ after, first }));
+}
+
+export async function getWorkflowStates(teamId: string): Promise<WorkflowState[]> {
+  console.log(`[linear-reader] fetching workflow states for team ${teamId}`);
+  const team = await linearClient.team(teamId);
+  return collectAll((after, first) => team.states({ after, first }));
+}
+
+export async function getTeamIssues(teamId: string): Promise<Issue[]> {
+  console.log(`[linear-reader] fetching issues for team ${teamId}`);
+  const team = await linearClient.team(teamId);
+  return collectAll((after, first) =>
+    team.issues({ after, first, filter: { state: { type: { nin: ["cancelled", "canceled", "duplicate"] } } } })
+  );
 }

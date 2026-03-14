@@ -26,18 +26,18 @@ The only module that imports Linear SDK write methods is `src/linear/writer.ts`.
 - **Runtime:** Bun (latest stable)
 - **Language:** TypeScript (strict mode)
 - **Linear:** `@linear/sdk` — their official SDK wraps the GraphQL API
-- **Web Server:** Hono (lightweight, runs on Bun natively)
-- **Database:** SQLite via `bun:sqlite` — used for the approval queue and audit log
-- **AI:** Claude Code (CC) — run interactively by the developer, no in-app AI SDK
+- **API Server:** Hono (lightweight, runs on Bun natively) — JSON API only
+- **Frontend:** React SPA with Ant Design, built by Vite, served as static files by Hono in production
+- **Database:** SQLite via `bun:sqlite` — used for the approval queue, audit log, dashboard snapshots, and insights
+- **AI:** Claude Code (CC) — interactive + headless (`claude -p` via Opus) for automated actions
 - **Validation:** Zod for external data boundaries (webhook payloads, user input)
-- **No other frameworks.** No React, no ORMs, no build tools. Bun handles everything.
 
 ## Project Structure
 
 ```
 linear-brain/
 ├── src/
-│   ├── index.ts              # entry: starts server
+│   ├── index.ts              # entry: starts Hono server
 │   ├── config.ts             # env loading, typed config
 │   ├── linear/
 │   │   ├── client.ts         # singleton Linear SDK client
@@ -47,14 +47,36 @@ linear-brain/
 │   │   ├── db.ts             # SQLite schema + migrations
 │   │   ├── proposals.ts      # proposal CRUD
 │   │   └── executor.ts       # executes APPROVED proposals only
+│   ├── dashboard/
+│   │   ├── types.ts          # DashboardSnapshot, MemberStats, etc.
+│   │   ├── snapshot.ts       # Fetches Linear data and computes dashboard stats
+│   │   └── store.ts          # SQLite CRUD for dashboard_snapshots table
+│   ├── actions/
+│   │   ├── gather-board.ts   # Shared: gathers full board state from Linear
+│   │   ├── clean-drafts.ts   # Headless CC action: clean up DRAFT tickets
+│   │   ├── audit-board.ts    # Headless CC action: audit board for issues
+│   │   └── generate-insight.ts # Headless CC action: generate PM-style insight
 │   └── server/
-│       ├── app.ts            # Hono app setup
-│       ├── routes/
-│       │   ├── dashboard.ts  # approval UI
-│       │   ├── api.ts        # proposal CRUD + approve/reject endpoints
-│       │   └── webhooks.ts   # Linear webhook receiver (future)
-│       └── views/
-│           └── templates.ts  # HTML template functions (no framework)
+│       ├── app.ts            # Hono app setup + static file serving
+│       └── routes/
+│           ├── api.ts        # JSON API: proposals, dashboard, actions, insights
+│           └── webhooks.ts   # Linear webhook receiver (future)
+├── web/                       # React SPA (built by Vite)
+│   ├── index.html            # Vite entry
+│   ├── vite.config.ts        # Vite config (proxy, build output)
+│   ├── tsconfig.json         # Separate TS config for React (DOM libs, JSX)
+│   └── src/
+│       ├── main.tsx          # React mount point
+│       ├── App.tsx           # Root component with router + Ant Design
+│       ├── api.ts            # Fetch wrapper for /api/* endpoints
+│       ├── types.ts          # Shared types (Proposal, AuditEntry, DashboardSnapshot, Insight)
+│       └── pages/
+│           ├── Dashboard.tsx      # Project overview with stats, members, blockers
+│           ├── ProposalList.tsx   # Proposal queue + Tidy Drafts / Audit Board buttons
+│           ├── ProposalDetail.tsx # Single proposal with structured payload view
+│           ├── Insights.tsx       # AI-generated board insights (PM briefing)
+│           └── AuditLog.tsx       # Dev-only audit log
+├── dist/web/                  # Built frontend (gitignored)
 ├── tests/
 │   ├── queue.test.ts
 │   ├── reader.test.ts
@@ -90,11 +112,15 @@ linear-brain/
 
 ## AI / Claude Notes
 
-- **There is no Anthropic API integration in this app.** All AI analysis and proposal generation is done interactively via Claude Code (CC) by the developer.
-- `@anthropic-ai/sdk` is NOT used. Do not add it back.
-- No `ANTHROPIC_API_KEY` in config. No scheduler. No automated analyzers.
-- The AI workflow is: CC reads Linear data via reader.ts → CC reasons about it → CC creates proposals in the queue via the API → human reviews proposals on the dashboard → executor runs approved ones.
-- Phases 3 and 4 from the original plan (automated analyzers and proposers) are replaced by this CC-driven workflow.
+- **No Anthropic API SDK.** `@anthropic-ai/sdk` is NOT used. No `ANTHROPIC_API_KEY` in config.
+- The primary AI workflow is: CC reads Linear data via reader.ts → CC reasons about it → CC creates proposals in the queue via the API → human reviews proposals on the dashboard → executor runs approved ones.
+- **Headless actions** (`src/actions/`): The dashboard triggers headless Claude Code CLI (`claude -p --model opus`) for automated tasks. The server gathers Linear data (issues, labels, states, comments), sends it to CC with a structured prompt, and processes the output. Three actions exist:
+  - **Tidy Drafts** — finds DRAFT-labeled tickets, cleans up titles/descriptions/labels per BOARD_RULES, suggests estimates. Results go through the approval queue.
+  - **Audit Board** — reviews the entire board for convention violations, missing info, related tickets, and suggests fixes. Results go through the approval queue.
+  - **Generate Insight** — produces a structured PM-style daily briefing (summary, cycle progress, focus areas, team performance, risks, recommendations). Stored in the `insights` table, not proposals — it's a read-only report.
+- All headless actions include issue comments in their context so CC can see clarifications and discussions.
+- Requires `claude` CLI to be installed and on PATH for headless actions.
+- `Bun.serve` uses `idleTimeout: 255` to accommodate long-running headless CC calls.
 
 ## Board Rules
 
@@ -105,13 +131,25 @@ Team-specific board conventions (ticket naming, label groups, description format
 - **CC updates `BOARD_RULES.md`** when it learns new general conventions from the user (see Self-Improvement Rule above). One-off requests are not persisted.
 - If `BOARD_RULES.md` is missing, prompt the user to create one from the example.
 
-## Dashboard Notes
+## Frontend Notes
 
-- Server-side rendered HTML. No client-side framework.
-- Hono serves HTML from template functions in `src/server/views/templates.ts`.
-- Use `<form>` posts for approve/reject actions. No JavaScript required on the frontend for core functionality.
-- Minimal CSS — use system fonts, a simple grid, and keep it functional over pretty.
-- The dashboard shows: pending proposals, recent approvals/rejections, and an audit log.
+- React SPA with Ant Design (dark theme, shadcn-inspired palette), built by Vite, served as static files by Hono in production.
+- Frontend source lives in `web/`, built output goes to `dist/web/` (gitignored).
+- `web/tsconfig.json` is a separate TS config (DOM libs, react-jsx). Root tsconfig excludes `web/` and `dist/`.
+- In dev: Vite runs on port 5173 with HMR, proxies `/api` and `/webhooks` to Hono on port 3000.
+- In prod: `bun run start` builds the frontend then starts Hono which serves both the API and static files on port 3000.
+- Custom styling uses inline styles (no Tailwind, no CSS files). Ant Design handles component styling.
+
+### Pages
+
+- **Dashboard** (`/`) — project overview with summary stats, cycle progress, issue breakdown, team member table, blockers, and stale issues. Data comes from dashboard snapshots (refreshable via button or `POST /api/dashboard/snapshot`).
+- **Proposals** (`/proposals`) — approval queue for Linear write operations. Pending proposals at top, history in a collapsible accordion with pagination. Includes "Tidy Drafts" and "Audit Board" buttons that trigger headless CC actions. Approve All / Reject All for batch operations.
+- **Proposal Detail** (`/proposals/:id`) — structured view of a single proposal with human-readable payload ("Changes" section), reasoning, and approve/reject buttons.
+- **Insights** (`/insights`) — AI-generated PM briefings. Latest insight displayed in full, previous insights in collapsible accordions. "Generate Insight" button triggers Opus analysis.
+- **Audit Log** (`/audit`) — dev-only page, icon-only button in the header far right. Shows raw audit trail.
+
+### Shared Types
+- Proposal/AuditEntry/DashboardSnapshot/Insight types are duplicated between `src/` and `web/src/types.ts` — keep in sync manually.
 
 ## Testing
 

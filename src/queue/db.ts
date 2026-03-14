@@ -41,6 +41,26 @@ function initDb(): Database {
     )
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS dashboard_snapshots (
+      id           TEXT PRIMARY KEY,
+      created_at   TEXT NOT NULL,
+      team_id      TEXT NOT NULL,
+      data         TEXT NOT NULL,
+      issue_count  INTEGER NOT NULL
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS insights (
+      id           TEXT PRIMARY KEY,
+      created_at   TEXT NOT NULL,
+      team_id      TEXT NOT NULL,
+      content      TEXT NOT NULL,
+      issue_count  INTEGER NOT NULL
+    )
+  `);
+
   console.log(`[db] Opened database at ${config.databasePath}`);
   return db;
 }

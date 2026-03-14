@@ -27,19 +27,29 @@
     "url": "https://github.com/LukeHawkins/linear-brain/issues"
   },
   "scripts": {
-    "dev": "bun run --watch src/index.ts",
-    "start": "bun run src/index.ts",
+    "dev": "concurrently -n api,web -c blue,green \"bun run --watch src/index.ts\" \"cd web && bunx vite\"",
+    "build:web": "cd web && bunx vite build",
+    "start": "bun run build:web && bun run src/index.ts",
     "test": "bun test"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "vite": "^8.0.0"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
     "@linear/sdk": "^77.0.0",
+    "antd": "^6.3.2",
     "hono": "^4.12.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1",
     "zod": "^4.3.6"
   }
 }

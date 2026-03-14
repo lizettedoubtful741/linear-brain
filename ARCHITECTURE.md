@@ -2,7 +2,7 @@
 
 ## System Design
 
-Linear Brain is a web service that exposes your Linear workspace through a typed API and gated approval queue. It reads from Linear freely, and executes write operations only after human approval through a web dashboard.
+Linear Brain is a web service that exposes your Linear workspace through a typed API and gated approval queue. It reads from Linear freely, and executes write operations only after human approval through a React SPA dashboard (built with Ant Design, served by the Hono API server).
 
 The "intelligence" layer is **Claude Code (CC)**, operated interactively by the developer. CC reads Linear data via the app's reader module, reasons about it, and creates proposals through the API. There is no automated AI — no Anthropic API calls, no scheduled analysis, no prompt templates. CC is the brain.
 
@@ -41,24 +41,26 @@ Linear API ◄── reader.ts         POST /api/proposals
 
 ## Data Flow
 
-### 1. CC-Driven Analysis
+### 1. CC-Driven Analysis (interactive or headless)
 
 ```
-Developer runs CC from the project root
-  → CC calls reader functions to fetch Linear data (issues, cycles, users, etc.)
-  → CC analyzes the data and identifies actions needed
-  → CC creates proposals via POST /api/proposals
-  → Proposals appear on the dashboard for review
+Interactive: Developer runs CC from the project root
+  → CC reads Linear data → reasons about it → creates proposals via POST /api/proposals
+
+Headless: User clicks "Tidy Drafts" / "Audit Board" on the dashboard
+  → Server gathers board state (issues, labels, states, comments) from Linear
+  → Spawns headless `claude -p --model opus` with structured prompt
+  → CC returns JSON proposals → server creates them in the queue
 ```
 
 ### 2. Human Review
 
 ```
-Developer opens the dashboard
+Developer opens the Proposals page
   → See list of pending proposals with summaries and reasoning
-  → Click Approve or Reject (with optional feedback)
-  → If approved: executor picks it up
-  → If rejected: feedback stored in audit log
+  → Click into a proposal to see structured "Changes" view
+  → Approve (executes immediately) or Reject
+  → Approve All / Reject All for batch operations
 ```
 
 ### 3. Execution
@@ -66,10 +68,22 @@ Developer opens the dashboard
 ```
 Executor reads approved proposal
   → Verifies status === 'approved' (double-check)
+  → Resolves issue IDs (supports both UUIDs and identifiers like F2-123)
+  → Resolves label names to IDs for add/remove operations
   → Calls writer.ts with the exact payload
   → writer.ts calls Linear SDK mutation
   → Result logged to audit table
   → Proposal status updated to 'executed'
+```
+
+### 4. Insights (read-only, no proposals)
+
+```
+User clicks "Generate Insight" on the Insights page
+  → Server gathers full board state + pre-computes stats
+  → Spawns headless Opus with a structured PM-briefing prompt
+  → CC returns markdown report → stored in insights table
+  → Displayed on Insights page (latest + history)
 ```
 
 ## Database Schema (SQLite)
@@ -100,6 +114,30 @@ Executor reads approved proposal
 | action      | TEXT    | proposal_created, approved, rejected, executed, error |
 | proposal_id | TEXT FK | Reference to proposals table                          |
 | details     | TEXT    | JSON with any relevant context                        |
+
+### dashboard_snapshots
+
+| Column      | Type    | Description                                           |
+| ----------- | ------- | ----------------------------------------------------- |
+| id          | TEXT PK | ULID                                                  |
+| created_at  | TEXT    | ISO timestamp                                         |
+| team_id     | TEXT    | Linear team ID                                        |
+| data        | TEXT    | JSON blob (DashboardSnapshot)                         |
+| issue_count | INTEGER | Denormalized issue count                              |
+
+Auto-pruned after 30 days.
+
+### insights
+
+| Column      | Type    | Description                                           |
+| ----------- | ------- | ----------------------------------------------------- |
+| id          | TEXT PK | ULID                                                  |
+| created_at  | TEXT    | ISO timestamp                                         |
+| team_id     | TEXT    | Linear team ID                                        |
+| content     | TEXT    | Markdown insight report from Opus                     |
+| issue_count | INTEGER | Number of issues analysed                             |
+
+Auto-pruned after 90 days.
 
 ## Linear Webhook Integration (Future)
 

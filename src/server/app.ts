@@ -1,6 +1,6 @@
 import { Hono } from "hono";
+import { serveStatic } from "hono/bun";
 import { getTeams, getCurrentCycle } from "../linear/reader.ts";
-import dashboard from "./routes/dashboard.ts";
 import api from "./routes/api.ts";
 import webhooks from "./routes/webhooks.ts";
 
@@ -29,9 +29,14 @@ app.get("/debug/linear", async (c) => {
   }
 });
 
-// Dashboard (HTML), API, and webhook routes
-app.route("/", dashboard);
+// API and webhook routes
 app.route("/", api);
 app.route("/", webhooks);
+
+// Serve built SPA static assets
+app.use("/*", serveStatic({ root: "./dist/web" }));
+
+// SPA fallback — serve index.html for client-side routes
+app.get("*", serveStatic({ root: "./dist/web", path: "index.html" }));
 
 export default app;
