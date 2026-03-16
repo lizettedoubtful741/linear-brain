@@ -185,7 +185,7 @@ export default function ProposalDetail() {
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <Link to="/proposals">
         <Button type="text" icon={<ArrowLeftOutlined />} style={{ marginBottom: 16, padding: "4px 8px" }}>
           Back to proposals

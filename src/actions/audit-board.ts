@@ -174,6 +174,17 @@ export async function runAuditBoard(): Promise<{ proposalCount: number; issues: 
 
   console.log(`[audit-board] Claude found ${auditItems.length} issues to fix`);
 
+  // Map issue_id back from gathered data — Claude may not always return the correct UUID
+  const identifierToUuid = new Map(activeIssues.map((i) => [i.identifier, i.id]));
+  for (const item of auditItems) {
+    const correctId = identifierToUuid.get(item.identifier);
+    if (correctId) {
+      item.issue_id = correctId;
+    } else {
+      console.warn(`[audit-board] Could not map identifier ${item.identifier} to UUID, using Claude's value: ${item.issue_id}`);
+    }
+  }
+
   if (auditItems.length === 0) {
     return { proposalCount: 0, issues: [] };
   }

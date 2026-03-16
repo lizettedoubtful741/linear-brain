@@ -85,7 +85,7 @@ function buildPrompt(
   boardRules: string,
 ): string {
   const draftList = drafts.map((i) => `
---- ${i.identifier} ---
+--- ${i.identifier} (uuid: ${i.id}) ---
 Title: ${i.title}
 Labels: ${i.labelNames.join(", ")}
 Assignee: ${i.assigneeName ?? "Unassigned"}
@@ -118,7 +118,7 @@ ${draftList}
 For EACH ticket above, output a JSON object describing the cleanup needed. Your response must be ONLY a valid JSON array, no other text. Each element should have this shape:
 
 {
-  "issue_id": "the Linear issue ID",
+  "issue_id": "the Linear issue UUID (from the 'uuid:' field shown for each ticket — this MUST be the full UUID, not the identifier)",
   "identifier": "e.g. F2-123",
   "updated_title": "cleaned up title following naming format",
   "updated_description": "rewritten description following the board rules format. Preserve ALL existing attachments, images, screenshots, and links.",
@@ -197,6 +197,17 @@ export async function runCleanDrafts(): Promise<{ proposalCount: number; issues:
   }
 
   console.log(`[clean-drafts] Claude returned ${cleanupItems.length} cleanup items`);
+
+  // Map issue_id back from gathered data — Claude may not always return the correct UUID
+  const identifierToUuid = new Map(drafts.map((d) => [d.identifier, d.id]));
+  for (const item of cleanupItems) {
+    const correctId = identifierToUuid.get(item.identifier);
+    if (correctId) {
+      item.issue_id = correctId;
+    } else {
+      console.warn(`[clean-drafts] Could not map identifier ${item.identifier} to UUID, using Claude's value: ${item.issue_id}`);
+    }
+  }
 
   // Remove existing pending/rejected draft-cleanup proposals for these issues
   const issueIds = new Set(cleanupItems.map((i) => i.issue_id));

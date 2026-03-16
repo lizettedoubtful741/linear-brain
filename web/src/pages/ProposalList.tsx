@@ -192,7 +192,7 @@ export default function ProposalList() {
   const historyColumns = columns.filter((c) => c.title !== "Action");
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       {/* Header */}
       <Flex justify="space-between" align="center" style={{ marginBottom: 20 }}>
         <Flex align="center" gap={12}>

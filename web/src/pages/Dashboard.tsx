@@ -42,6 +42,96 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+interface WeekBucket {
+  label: string;       // e.g. "10 Mar"
+  points: number;
+  isCurrent: boolean;
+}
+
+function computeWeeklyVelocity(issues: DashboardSnapshot["by_status"]["completed"]["issues"], weeks = 8): WeekBucket[] {
+  // Build week boundaries (Monday 00:00 UTC)
+  const now = new Date();
+  const day = now.getUTCDay();
+  const diff = day === 0 ? 6 : day - 1;
+  const thisMonday = new Date(now);
+  thisMonday.setUTCDate(thisMonday.getUTCDate() - diff);
+  thisMonday.setUTCHours(0, 0, 0, 0);
+
+  const buckets: WeekBucket[] = [];
+  for (let i = weeks - 1; i >= 0; i--) {
+    const start = new Date(thisMonday);
+    start.setUTCDate(start.getUTCDate() - i * 7);
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 7);
+
+    const pts = issues
+      .filter((iss) => {
+        if (!iss.completed_at) return false;
+        const d = new Date(iss.completed_at);
+        return d >= start && d < end;
+      })
+      .reduce((sum, iss) => sum + (iss.estimate ?? 0), 0);
+
+    buckets.push({
+      label: start.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+      points: pts,
+      isCurrent: i === 0,
+    });
+  }
+
+  return buckets;
+}
+
+function VelocityChart({ snapshot }: { snapshot: DashboardSnapshot }) {
+  const completed = snapshot.by_status.completed?.issues ?? [];
+  const buckets = computeWeeklyVelocity(completed);
+  const maxPts = Math.max(...buckets.map((b) => b.points), 1);
+  const avg = buckets.length > 1
+    ? Math.round(buckets.slice(0, -1).reduce((s, b) => s + b.points, 0) / (buckets.length - 1))
+    : 0;
+
+  return (
+    <Card bordered style={{ marginBottom: 24 }}>
+      <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+        <Text strong>Weekly Velocity</Text>
+        {avg > 0 && (
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            avg {avg} pts / week
+          </Text>
+        )}
+      </Flex>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 140 }}>
+        {buckets.map((b) => {
+          const barHeight = maxPts > 0 ? Math.max(Math.round((b.points / maxPts) * 100), b.points > 0 ? 6 : 2) : 2;
+          return (
+            <Tooltip key={b.label} title={`${b.label}: ${b.points} pts`}>
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
+                {b.points > 0 && (
+                  <Text style={{ fontSize: 11, marginBottom: 4, color: b.isCurrent ? "#a78bfa" : "#a1a1aa" }}>
+                    {b.points}
+                  </Text>
+                )}
+                <div
+                  style={{
+                    width: "100%",
+                    maxWidth: 48,
+                    height: barHeight,
+                    background: b.isCurrent ? "#a78bfa" : "#3f3f46",
+                    borderRadius: 4,
+                  }}
+                />
+                <Text type="secondary" style={{ fontSize: 10, marginTop: 6, whiteSpace: "nowrap" }}>
+                  {b.label}
+                </Text>
+              </div>
+            </Tooltip>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
 export default function Dashboard() {
   const [data, setData] = useState<{ snapshot: DashboardSnapshot; created_at: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -248,6 +338,9 @@ export default function Dashboard() {
           </Card>
         </Col>
       </Row>
+
+      {/* Velocity chart */}
+      <VelocityChart snapshot={snapshot} />
 
       {/* Cycle + Issue breakdown */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>

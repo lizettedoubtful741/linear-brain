@@ -143,7 +143,7 @@ export default function Insights() {
   const previous = insights.slice(1);
 
   return (
-    <div style={{ maxWidth: 860, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
         <div>
           <Title level={3} style={{ margin: 0, letterSpacing: "-0.025em" }}>Insights</Title>
@@ -188,23 +188,34 @@ export default function Insights() {
       {previous.length > 0 && (
         <Collapse
           ghost
-          items={previous.map((insight) => ({
-            key: insight.id,
+          items={[{
+            key: "history",
             label: (
-              <Flex justify="space-between" align="center" style={{ width: "100%" }}>
-                <Flex align="center" gap={8}>
-                  <HistoryOutlined />
-                  <Text type="secondary">{formatDate(insight.created_at)}</Text>
-                </Flex>
-                <Text type="secondary" style={{ fontSize: 12 }}>{insight.issue_count} issues</Text>
+              <Flex align="center" gap={8}>
+                <HistoryOutlined />
+                <Text type="secondary">History ({previous.length})</Text>
               </Flex>
             ),
             children: (
-              <Card bordered size="small">
-                <InsightContent content={insight.content} />
-              </Card>
+              <Collapse
+                ghost
+                items={previous.map((insight) => ({
+                  key: insight.id,
+                  label: (
+                    <Flex justify="space-between" align="center" style={{ width: "100%" }}>
+                      <Text type="secondary">{formatDate(insight.created_at)}</Text>
+                      <Text type="secondary" style={{ fontSize: 12 }}>{insight.issue_count} issues</Text>
+                    </Flex>
+                  ),
+                  children: (
+                    <Card bordered size="small">
+                      <InsightContent content={insight.content} />
+                    </Card>
+                  ),
+                }))}
+              />
             ),
-          }))}
+          }]}
         />
       )}
     </div>

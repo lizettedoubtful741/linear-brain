@@ -70,7 +70,7 @@ export default function AuditLog() {
   ];
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <Title level={3} style={{ marginBottom: 20, letterSpacing: "-0.025em" }}>Audit Log</Title>
       <Card bordered>
         <Table<AuditEntry>
